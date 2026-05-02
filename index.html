@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giochi Didattici IA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08);
+    }
+    header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+    h1 { font-size: 2rem; color: #2563eb; margin-bottom: 0.4rem; }
+    .subtitle { color: #64748b; font-size: 1.05rem; }
+    
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .game-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #f1f5f9;
+      padding: 1.2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #0f172a;
+      transition: all 0.2s ease;
+      border: 1px solid #e2e8f0;
+    }
+    .game-card:hover { background: #e0f2fe; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .game-card .emoji { font-size: 1.8rem; flex-shrink: 0; }
+    .game-card .title { font-weight: 600; font-size: 1.05rem; }
+    
+    footer { margin-top: 2.5rem; text-align: center; font-size: 0.85rem; color: #94a3b8; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      .container { padding: 1.5rem; }
+      h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎮 Giochi Didattici IA</h1>
+      <p class="subtitle">Clicca su una scheda per giocare direttamente nel browser</p>
+    </header>
+
+    <main class="game-grid">
+      <a href="code_quest.html" class="game-card">
+        <span class="emoji">💻</span>
+        <span class="title">Code Quest</span>
+      </a>
+
+      <a href="missione_2030.html" class="game-card">
+        <span class="emoji">🚀</span>
+        <span class="title">Missione 2030</span>
+      </a>
+
+      <a href="musica_gioco_carte.html" class="game-card">
+        <span class="emoji">🃏</span>
+        <span class="title">Musica - Gioco di Carte</span>
+      </a>
+    </main>
+
+    <footer>
+      <p>Repository didattica | Ultimo aggiornamento: Maggio 2026</p>
+      <p>Per segnalazioni contatta il docente</p>
+    </footer>
+  </div>
+</body>
+</html>
