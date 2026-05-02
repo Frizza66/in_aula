@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Quest — Impara a Programmare</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f14;
+    --surface: #17171f;
+    --surface2: #1f1f2a;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8e6f0;
+    --muted: #8884a0;
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+    --green: #6ee7b7;
+    --green-dim: rgba(110,231,183,0.12);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --amber: #fbbf24;
+    --code-bg: #0a0a0f;
+    --font-ui: 'Sora', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+    --r: 10px;
+    --r-lg: 16px;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 50% -10%, rgba(167,139,250,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 100% 80%, rgba(110,231,183,0.07) 0%, transparent 50%);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeDown 0.5s ease;
+  }
+
+  .logo {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--purple);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* Progress */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--purple);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .progress-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .xp-chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--amber);
+    background: rgba(251,191,36,0.12);
+    border: 1px solid rgba(251,191,36,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* Scene card */
+  .scene {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    animation: fadeUp 0.35s ease;
+  }
+
+  .concept-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple);
+    background: var(--purple-dim);
+    border: 1px solid rgba(167,139,250,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .narrative {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--border2);
+  }
+
+  /* Character speech */
+  .character {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+
+  .avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+  }
+
+  .speech-bubble {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px 12px 12px 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.65;
+    flex: 1;
+  }
+
+  .speech-bubble strong {
+    color: var(--purple);
+    font-weight: 500;
+  }
+
+  /* Code block */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    overflow-x: auto;
+  }
+
+  .code-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: #c0dd97;
+    white-space: pre;
+  }
+
+  pre .comment { color: #525265; }
+  pre .keyword { color: #a78bfa; }
+  pre .string  { color: #6ee7b7; }
+  pre .number  { color: #fbbf24; }
+
+  /* Question */
+  .question-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .opt {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: var(--font-mono);
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .opt:hover { background: var(--surface2); border-color: rgba(255,255,255,0.2); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .opt.wrong   { background: var(--red-dim);   border-color: var(--red);   color: var(--red); }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 0.75rem;
+    padding: 10px 14px;
+    border-radius: var(--r);
+    font-size: 13px;
+    line-height: 1.65;
+    display: none;
+    animation: fadeUp 0.25s ease;
+  }
+
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--green-dim); border: 1px solid rgba(110,231,183,0.25); color: var(--green); }
+  .feedback.wrong   { background: var(--red-dim);   border: 1px solid rgba(248,113,113,0.25); color: var(--red); }
+
+  /* Next button */
+  .next-btn {
+    margin-top: 1rem;
+    background: transparent;
+    border: 1px solid var(--purple);
+    border-radius: var(--r);
+    padding: 9px 20px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    color: var(--purple);
+    cursor: pointer;
+    display: none;
+    transition: background 0.15s;
+  }
+
+  .next-btn:hover { background: var(--purple-dim); }
+
+  /* Ending */
+  .ending {
+    text-align: center;
+    padding: 2rem 1rem;
+    animation: fadeUp 0.4s ease;
+  }
+
+  .trophy { font-size: 48px; margin-bottom: 1rem; }
+
+  .ending-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  .ending-msg {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .stars {
+    font-size: 24px;
+    color: var(--amber);
+    margin: 0.75rem 0;
+    letter-spacing: 4px;
+  }
+
+  .score-display {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .score-display strong {
+    color: var(--text);
+  }
+
+  .ending-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-restart, .btn-share {
+    border-radius: var(--r);
+    padding: 9px 20px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-restart {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text);
+  }
+
+  .btn-restart:hover { background: var(--surface2); }
+
+  .btn-share {
+    background: var(--purple-dim);
+    border: 1px solid rgba(167,139,250,0.3);
+    color: var(--purple);
+  }
+
+  .btn-share:hover { background: rgba(167,139,250,0.2); }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .title { font-size: 22px; }
+    .scene { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="logo">⬡ Code Quest</div>
+    <h1 class="title">Impara a Programmare</h1>
+    <p class="subtitle">Un'avventura narrativa attraverso i fondamenti del coding</p>
+  </div>
+  <div id="game"></div>
+</div>
+
+<script>
+const chapters = [
+  {
+    concept: "Variabili",
+    scene: {
+      avatar: "🧙",
+      name: "Sage il Mago",
+      speech: 'Benvenuto, apprendista! Il regno di Codeland è in pericolo. Il drago Bugs ha rubato i cristalli magici. Per sconfiggerlo, devi imparare a usare le <strong>variabili</strong> — i contenitori magici che tengono in memoria i valori.'
+    },
+    narrative: "Sei nella Torre degli Incantesimi. Davanti a te ci sono tre barattoli vuoti. Il mago Sage ti spiega che le variabili sono come barattoli etichettati: ognuno ha un nome e può contenere qualcosa.",
+    code: `nome = <span class="string">"Aria"</span>\neta = <span class="number">17</span>\npunti = <span class="number">0</span>\n\n<span class="keyword">print</span>(nome)   <span class="comment"># → "Aria"</span>\n<span class="keyword">print</span>(eta)    <span class="comment"># → 17</span>`,
+    question: "Aria vuole aggiornare i suoi punti dopo aver trovato un cristallo (+10). Come lo fa?",
+    options: [
+      { text: 'punti = punti + 10', correct: true },
+      { text: 'punti == 10', correct: false },
+      { text: '10 = punti', correct: false },
+      { text: 'punti + 10 = punti', correct: false }
+    ],
+    feedbackCorrect: "Esatto! Con `punti = punti + 10` prendi il valore attuale di punti, ci aggiungi 10, e lo rimetti nel barattolo. In Python puoi anche scrivere `punti += 10`.",
+    feedbackWrong: "Attenzione! `=` assegna un valore. Il lato sinistro è sempre la variabile da aggiornare. Scrivere `10 = punti` è come etichettare il numero 10 — non funziona!"
+  },
+  {
+    concept: "Condizioni (if/else)",
+    scene: {
+      avatar: "🧝",
+      name: "Aria l'Avventuriera",
+      speech: 'Ho trovato un bivio nel bosco! A sinistra una grotta buia, a destra un ponte illuminato. Devo scegliere in base ai miei punti vita.'
+    },
+    narrative: "Il bosco di Logica è pieno di biforcazioni. Solo chi sa usare le condizioni può scegliere il percorso giusto. Un `if` è come una domanda: se è vero fai questo, altrimenti fai quest'altro.",
+    code: `vita = <span class="number">30</span>\n\n<span class="keyword">if</span> vita >= <span class="number">50</span>:\n    <span class="keyword">print</span>(<span class="string">"Affronta la grotta!"</span>)\n<span class="keyword">else</span>:\n    <span class="keyword">print</span>(<span class="string">"Prendi il ponte sicuro."</span>)\n\n<span class="comment"># Risultato: "Prendi il ponte sicuro."</span>`,
+    question: "Aria ha 30 punti vita. Il codice qui sopra cosa stampa?",
+    options: [
+      { text: '"Prendi il ponte sicuro."', correct: true },
+      { text: '"Affronta la grotta!"', correct: false },
+      { text: 'Non stampa nulla', correct: false },
+      { text: 'Errore — vita non è definita', correct: false }
+    ],
+    feedbackCorrect: "Perfetto! `30 >= 50` è falso, quindi Python salta il blocco `if` e esegue l'`else`. Aria prende il ponte — scelta saggia!",
+    feedbackWrong: "Riprova! Python valuta `vita >= 50`. Poiché 30 non è ≥ 50, la condizione è falsa e si esegue il blocco `else`."
+  },
+  {
+    concept: "Cicli (for loop)",
+    scene: {
+      avatar: "🧙",
+      name: "Sage il Mago",
+      speech: 'Bravissima! Ora ci sono 5 cristalli nascosti nelle rovine. Invece di scrivere 5 volte lo stesso incantesimo, usa un <strong>ciclo for</strong> — ripeti questo per ogni elemento.'
+    },
+    narrative: "Le Rovine del Ciclo sono custodite da un enigma: come raccogliere tutti i cristalli senza ripetere il codice? I cicli `for` permettono di eseguire azioni ripetute in modo elegante.",
+    code: `cristalli = [<span class="string">"rosso"</span>, <span class="string">"blu"</span>, <span class="string">"verde"</span>, <span class="string">"oro"</span>, <span class="string">"viola"</span>]\n\n<span class="keyword">for</span> cristallo <span class="keyword">in</span> cristalli:\n    <span class="keyword">print</span>(<span class="string">"Raccolto:"</span>, cristallo)\n\n<span class="comment"># Stampa 5 righe, una per cristallo</span>`,
+    question: "Quante volte viene eseguito `print(\"Raccolto:\", cristallo)`?",
+    options: [
+      { text: '5 volte — una per ogni cristallo', correct: true },
+      { text: '1 volta — solo il primo', correct: false },
+      { text: 'Infinite volte', correct: false },
+      { text: '0 volte — serve un indice numerico', correct: false }
+    ],
+    feedbackCorrect: "Giusto! Il ciclo `for` itera su ogni elemento della lista. Con 5 cristalli, il blocco interno viene eseguito 5 volte.",
+    feedbackWrong: "Rifletti! Con `for cristallo in cristalli`, Python prende ogni elemento uno alla volta. La lista ha 5 elementi → 5 esecuzioni."
+  },
+  {
+    concept: "Funzioni",
+    scene: {
+      avatar: "🧝",
+      name: "Aria l'Avventuriera",
+      speech: 'Eccellente! Sono arrivata al castello di Bugs. Ho bisogno di un incantesimo riutilizzabile. Sage mi ha insegnato le <strong>funzioni</strong>: blocchi di codice con un nome, pronti all\'uso.'
+    },
+    narrative: "Le funzioni sono come ricette magiche: le scrivi una volta e le usi quante volte vuoi. Puoi passargli ingredienti (parametri) per ottenere risultati diversi.",
+    code: `<span class="keyword">def</span> attacca(danno, bersaglio):\n    <span class="keyword">print</span>(<span class="string">f"{bersaglio} subisce {danno} danni!"</span>)\n    <span class="keyword">return</span> danno\n\nattacca(<span class="number">25</span>, <span class="string">"Bugs"</span>)   <span class="comment"># → "Bugs subisce 25 danni!"</span>\nattacca(<span class="number">10</span>, <span class="string">"Bugs"</span>)   <span class="comment"># → "Bugs subisce 10 danni!"</span>`,
+    question: 'Cosa fa `attacca(15, "Drago")`?',
+    options: [
+      { text: 'Stampa "Drago subisce 15 danni!" e restituisce 15', correct: true },
+      { text: 'Stampa "Drago subisce 15 danni!" e restituisce None', correct: false },
+      { text: 'Solo restituisce 15, non stampa nulla', correct: false },
+      { text: 'Errore — i parametri sono sbagliati', correct: false }
+    ],
+    feedbackCorrect: "Perfetto! La funzione fa entrambe le cose: `print` stampa il messaggio, poi `return danno` restituisce 15. Aria ha sconfitto Bugs!",
+    feedbackWrong: "Quasi! La funzione esegue sia `print` (stampa) che `return` (restituisce il valore). Entrambe le istruzioni vengono eseguite."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+
+function render() {
+  if (current >= chapters.length) { renderEnding(); return; }
+  const ch = chapters[current];
+  const pct = Math.round((current / chapters.length) * 100);
+
+  document.getElementById('game').innerHTML = `
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <span class="progress-label">Capitolo ${current + 1}/${chapters.length}</span>
+      <span class="xp-chip">XP ${score * 25}</span>
+    </div>
+    <div class="scene">
+      <span class="concept-tag">${ch.concept}</span>
+      <p class="narrative">${ch.narrative}</p>
+      <div class="character">
+        <div class="avatar">${ch.scene.avatar}</div>
+        <div class="speech-bubble"><strong>${ch.scene.name}:</strong> ${ch.scene.speech}</div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-label">Codice dell'incantesimo</div>
+        <pre>${ch.code}</pre>
+      </div>
+      <p class="question-label">${ch.question}</p>
+      <div class="options" id="opts">
+        ${ch.options.map((o, i) => `<button class="opt" onclick="choose(${i})">${o.text}</button>`).join('')}
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="next-btn" id="nb" onclick="next()">${current < chapters.length - 1 ? 'Continua l\'avventura →' : 'Scopri il finale →'}</button>
+    </div>
+  `;
+  answered = false;
+}
+
+function choose(idx) {
+  if (answered) return;
+  answered = true;
+  const ch = chapters[current];
+  const btns = document.querySelectorAll('.opt');
+  const fb = document.getElementById('fb');
+  const nb = document.getElementById('nb');
+  const ok = ch.options[idx].correct;
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (ch.options[i].correct) b.classList.add('correct');
+  });
+  if (!ok) btns[idx].classList.add('wrong');
+  fb.textContent = (ok ? '✓ ' : '✗ ') + (ok ? ch.feedbackCorrect : ch.feedbackWrong);
+  fb.className = 'feedback show ' + (ok ? 'correct' : 'wrong');
+  if (ok) score++;
+  nb.style.display = 'block';
+}
+
+function next() { current++; render(); }
+
+function renderEnding() {
+  const stars = score >= 4 ? '★★★' : score >= 2 ? '★★☆' : '★☆☆';
+  const msg = score === 4
+    ? 'Maestro del Codice! Hai risposto correttamente a tutte le sfide.'
+    : score >= 2
+    ? 'Buon lavoro! Riprova per ottenere il punteggio perfetto.'
+    : "L'avventura continua — riprova per padroneggiare i concetti!";
+
+  document.getElementById('game').innerHTML = `
+    <div class="scene ending">
+      <div class="trophy">🏆</div>
+      <h2 class="ending-title">Il regno di Codeland è salvo!</h2>
+      <p class="ending-msg">Aria ha sconfitto Bugs grazie alle tue conoscenze di programmazione.</p>
+      <div class="stars">${stars}</div>
+      <p class="score-display"><strong>${score}/4</strong> sfide completate — ${msg}</p>
+      <div class="ending-actions">
+        <button class="btn-restart" onclick="restart()">Ricomincia</button>
+      </div>
+    </div>
+  `;
+}
+
+function restart() { current = 0; score = 0; render(); }
+
+render();
+</script>
+</body>
+</html>

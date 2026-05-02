@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Musica — Gioco delle Carte</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0e17;
+    --surface: #1a1929;
+    --surface2: #221f35;
+    --border: rgba(255,255,255,0.08);
+    --text: #fffffe;
+    --text2: #a7a9be;
+    --text3: #6b6d8a;
+    --accent: #e8a838;
+    --accent2: #ff6b6b;
+    --green: #43d9ad;
+    --red: #ff6b6b;
+    --purple: #9d8cff;
+    --blue: #5eb1ef;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(157,140,255,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(232,168,56,0.08) 0%, transparent 60%);
+  }
+
+  .container { width: 100%; max-width: 640px; }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+  }
+  .header-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 6vw, 40px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .header p {
+    font-size: 15px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* SCORE BAR */
+  .score-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.75rem;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+  }
+  .score-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .score-val {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .score-val.accent { color: var(--accent); }
+  #timer.warning { color: #e8a838; }
+  #timer.danger { color: var(--red); }
+
+  /* CARD AREA */
+  .card-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    min-height: 220px;
+    align-items: center;
+  }
+
+  .carta-back {
+    width: 280px;
+    height: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .carta-back::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255,255,255,0.012) 10px,
+      rgba(255,255,255,0.012) 20px
+    );
+  }
+  .carta-back:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(157,140,255,0.3);
+  }
+  .carta-back-icon { font-size: 48px; margin-bottom: 10px; }
+  .carta-back-text { font-size: 13px; color: var(--text3); }
+
+  .carta-front {
+    width: 280px;
+    height: 200px;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    animation: cardFlip 0.45s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+  @keyframes cardFlip {
+    0% { transform: rotateY(90deg) scale(0.8); opacity: 0; }
+    100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+  }
+  .carta-front::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: -40%;
+    width: 180%;
+    height: 80%;
+    background: rgba(255,255,255,0.04);
+    transform: rotate(-20deg);
+    pointer-events: none;
+  }
+  .carta-icon { font-size: 26px; margin-bottom: 6px; }
+  .carta-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+  .carta-cat {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.55);
+    margin-top: 8px;
+    text-align: center;
+    padding: 0 12px;
+  }
+
+  /* CATEGORY COLORS */
+  .cc-0 { background: linear-gradient(135deg, #1a1533 0%, #2d2460 100%); border-color: rgba(157,140,255,0.3); }
+  .cc-0 .carta-letter { color: #c4baff; }
+  .cc-1 { background: linear-gradient(135deg, #1a1e1a 0%, #1b3a22 100%); border-color: rgba(67,217,173,0.25); }
+  .cc-1 .carta-letter { color: #43d9ad; }
+  .cc-2 { background: linear-gradient(135deg, #1e1515 0%, #3a1b1b 100%); border-color: rgba(255,107,107,0.25); }
+  .cc-2 .carta-letter { color: #ff8080; }
+  .cc-3 { background: linear-gradient(135deg, #14181e 0%, #1b2840 100%); border-color: rgba(94,177,239,0.25); }
+  .cc-3 .carta-letter { color: #5eb1ef; }
+  .cc-4 { background: linear-gradient(135deg, #1a1710 0%, #352e10 100%); border-color: rgba(232,168,56,0.25); }
+  .cc-4 .carta-letter { color: #e8a838; }
+  .cc-5 { background: linear-gradient(135deg, #14101e 0%, #2a1a38 100%); border-color: rgba(190,100,220,0.25); }
+  .cc-5 .carta-letter { color: #c86ce8; }
+  .cc-6 { background: linear-gradient(135deg, #101e1a 0%, #0e3028 100%); border-color: rgba(67,217,173,0.2); }
+  .cc-6 .carta-letter { color: #5fdfc0; }
+  .cc-7 { background: linear-gradient(135deg, #1e1810 0%, #382810 100%); border-color: rgba(255,160,50,0.25); }
+  .cc-7 .carta-letter { color: #ffa050; }
+
+  /* ANSWER */
+  .answer-area {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .input-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  .input-row input {
+    flex: 1;
+    height: 48px;
+    padding: 0 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-row input::placeholder { color: var(--text3); }
+  .input-row input:focus { border-color: rgba(157,140,255,0.5); }
+  .btn {
+    height: 48px;
+    padding: 0 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .btn:hover { background: var(--surface2); }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary {
+    background: var(--purple);
+    border-color: transparent;
+    color: #fff;
+  }
+  .btn.primary:hover { background: #8a79ee; }
+  .btn.skip { color: var(--text3); }
+
+  .feedback {
+    font-size: 15px;
+    font-weight: 500;
+    min-height: 22px;
+    text-align: center;
+    color: var(--text2);
+  }
+  .feedback.ok { color: var(--green); }
+  .feedback.no { color: var(--red); }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .btn.large { height: 52px; padding: 0 32px; font-size: 15px; }
+
+  /* TIMER RING */
+  .timer-ring-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+  }
+  .timer-ring-wrap svg { transform: rotate(-90deg); }
+
+  /* RESULT */
+  .risultato {
+    text-align: center;
+    padding: 2.5rem 1rem 2rem;
+    animation: fadeUp 0.4s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .risultato-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .risultato h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+  .voto {
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin: 16px 0 4px;
+  }
+  .voto-su-10 { font-size: 20px; color: var(--text3); margin-bottom: 12px; }
+  .risultato-msg { font-size: 16px; color: var(--text2); margin-bottom: 2rem; }
+  .punti-finali { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+
+  /* STORICO */
+  .storico { margin-top: 2rem; }
+  .storico h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .storico-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .storico-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .storico-icon { font-size: 18px; flex-shrink: 0; }
+  .storico-main { flex: 1; min-width: 0; }
+  .storico-main strong { font-weight: 600; color: var(--text); }
+  .storico-main span { color: var(--text3); }
+  .storico-es { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+  .badge {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .badge-ok { background: rgba(67,217,173,0.15); color: #43d9ad; }
+  .badge-no { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+  .badge-skip { background: rgba(167,169,190,0.12); color: #a7a9be; }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* SPLASH */
+  .splash {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  .splash-icon { font-size: 56px; margin-bottom: 16px; }
+  .splash p { font-size: 15px; color: var(--text2); margin-bottom: 2rem; line-height: 1.6; }
+  .categorie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 2rem;
+  }
+  .cat-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--text2);
+    text-align: left;
+  }
+  .cat-pill span { margin-right: 6px; }
+
+  @media (max-width: 420px) {
+    .carta-front, .carta-back { width: 240px; height: 180px; }
+    .carta-letter { font-size: 64px; }
+    .score-val { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-label">Scuola Media — Musica</div>
+    <h1>Gioco delle Carte</h1>
+    <p>Estrai una carta, trova un esempio con quella lettera!</p>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-card">
+      <div class="score-label">Punteggio</div>
+      <div class="score-val accent" id="score">0</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Carta</div>
+      <div class="score-val" id="card-num">— / 10</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Tempo</div>
+      <div class="score-val" id="timer">—</div>
+    </div>
+  </div>
+
+  <div id="splash" class="splash">
+    <div class="splash-icon">🎵</div>
+    <p>Ogni carta mostra una <strong>categoria</strong> e una <strong>lettera</strong>.<br/>
+    Scrivi un esempio che inizia con quella lettera. Hai 20 secondi!</p>
+    <div class="categorie-grid">
+      <div class="cat-pill"><span>🎼</span>Compositori classici</div>
+      <div class="cat-pill"><span>🎸</span>Band e gruppi</div>
+      <div class="cat-pill"><span>🎤</span>Cantanti solisti</div>
+      <div class="cat-pill"><span>🎻</span>Strumenti musicali</div>
+      <div class="cat-pill"><span>🎵</span>Note e figure</div>
+      <div class="cat-pill"><span>🎬</span>Colonne sonore</div>
+      <div class="cat-pill"><span>🎹</span>Generi musicali</div>
+      <div class="cat-pill"><span>🇮🇹</span>Cantanti italiani</div>
+    </div>
+    <button class="btn primary large" onclick="nuovaPartita()">Inizia a giocare</button>
+  </div>
+
+  <div id="game-area" style="display:none">
+    <div class="card-wrap" id="card-wrap">
+      <div class="carta-back" onclick="estraiCarta()">
+        <div class="carta-back-icon">🎴</div>
+        <div class="carta-back-text">Clicca per estrarre la carta</div>
+      </div>
+    </div>
+
+    <div class="answer-area" id="answer-area">
+      <div class="input-row">
+        <input type="text" id="risposta" placeholder="Scrivi la tua risposta…" autocomplete="off" />
+        <button class="btn primary" onclick="conferma()">Conferma</button>
+        <button class="btn skip" onclick="salta()">Salta</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="controls" id="controls"></div>
+  </div>
+
+  <div id="risultato-area" style="display:none"></div>
+  <div id="storico-area" style="display:none">
+    <hr/>
+    <div class="storico">
+      <h3>Storico turni</h3>
+      <ul class="storico-list" id="storico-list"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATEGORIE = [
+  { nome:"Compositori classici", icon:"🎼", cc:"cc-0",
+    esempi:{A:"Albinoni",B:"Bach",C:"Chopin",D:"Debussy",E:"Elgar",F:"Fauré",G:"Grieg",H:"Handel",I:"Ives",J:"Janáček",K:"Kodály",L:"Liszt",M:"Mozart",N:"Nielsen",O:"Orff",P:"Prokofiev",R:"Rossini",S:"Schubert",T:"Tchaikovsky",U:"Uccellini",V:"Vivaldi",W:"Wagner",X:"Xenakis",Z:"Zimmermann"} },
+  { nome:"Band e gruppi musicali", icon:"🎸", cc:"cc-1",
+    esempi:{A:"AC/DC",B:"Beatles",C:"Coldplay",D:"Duran Duran",E:"Eagles",F:"Foo Fighters",G:"Green Day",H:"Hole",I:"INXS",J:"Journey",K:"Kiss",L:"Led Zeppelin",M:"Metallica",N:"Nirvana",O:"Oasis",P:"Pink Floyd",Q:"Queen",R:"Radiohead",S:"Scorpions",T:"Talking Heads",U:"U2",V:"Vanilla Ice",W:"Weezer",X:"X-Ambassadors",Z:"ZZ Top"} },
+  { nome:"Cantanti e artisti solisti", icon:"🎤", cc:"cc-2",
+    esempi:{A:"Adele",B:"Beyoncé",C:"Celentano",D:"Dalla",E:"Elvis",F:"Freddie Mercury",G:"Guccini",H:"Harry Styles",I:"Iggy Pop",J:"Jimi Hendrix",K:"Katy Perry",L:"Lady Gaga",M:"Madonna",N:"Nino D'Angelo",O:"Ornella Vanoni",P:"Pavarotti",R:"Rihanna",S:"Sinatra",T:"Tiziano Ferro",U:"Umberto Tozzi",V:"Vasco Rossi",W:"Whitney Houston",X:"Xavier Naidoo",Z:"Zayn"} },
+  { nome:"Strumenti musicali", icon:"🎻", cc:"cc-3",
+    esempi:{A:"Arpa",B:"Basso",C:"Clarinetto",D:"Dulcimer",E:"Euphonium",F:"Flauto",G:"Ghironda",H:"Harmonium",I:"Idrofono",J:"Djembé",K:"Kazoo",L:"Liuto",M:"Mandolino",N:"Nacchere",O:"Oboe",P:"Pianoforte",Q:"Quena",R:"Rullante",S:"Sassofono",T:"Tromba",U:"Ukulele",V:"Violino",W:"Washboard",X:"Xilofono",Z:"Zampogna"} },
+  { nome:"Note e figure musicali", icon:"🎵", cc:"cc-4",
+    esempi:{A:"Accordo",B:"Biscroma",C:"Croma",D:"Diesis",F:"Forte",G:"Glissando",I:"Intervallo",L:"Legato",M:"Minima",N:"Nota",O:"Ottava",P:"Pausa",Q:"Quartina",R:"Ritmo",S:"Semibreve",T:"Terzina",U:"Unisono",V:"Velocità"} },
+  { nome:"Colonne sonore di film", icon:"🎬", cc:"cc-5",
+    esempi:{A:"Avengers",B:"Batman",C:"Cinema Paradiso",D:"Dirty Dancing",E:"E.T.",F:"Forrest Gump",G:"Grease",H:"Harry Potter",I:"Il Gladiatore",J:"Jurassic Park",K:"Kill Bill",L:"Lion King",M:"Mission Impossible",N:"Nuovo Cinema Paradiso",O:"Octopussy",P:"Pinocchio",R:"Rocky",S:"Star Wars",T:"Titanic",U:"Up",V:"Violinista sul Tetto",W:"West Side Story",X:"X-Men",Z:"Zorro"} },
+  { nome:"Generi musicali", icon:"🎹", cc:"cc-6",
+    esempi:{A:"Alternative",B:"Blues",C:"Country",D:"Disco",E:"Elettronica",F:"Folk",G:"Gospel",H:"Hip-hop",I:"Indie",J:"Jazz",K:"K-pop",L:"Latin",M:"Metal",N:"New Wave",O:"Opera",P:"Pop",R:"Reggae",S:"Soul",T:"Techno",U:"Urban",V:"Vivace",W:"World Music",Z:"Zuk"} },
+  { nome:"Cantanti italiani", icon:"🇮🇹", cc:"cc-7",
+    esempi:{A:"Antonacci",B:"Baglioni",C:"Celentano",D:"De André",E:"Elisa",F:"Fossati",G:"Gabbani",I:"Irama",L:"Laura Pausini",M:"Mina",N:"Nannini",O:"Ornella Vanoni",P:"Pausini",R:"Ramazzotti",S:"Sfera Ebbasta",T:"Tiziano Ferro",U:"Umberto Tozzi",V:"Vasco Rossi",Z:"Zucchero"} },
+];
+
+const LETTERE = "ABCDEFGHIJKLMNOPRSTUVZ".split("");
+let partita = {};
+
+function getRand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function nuovaPartita(){
+  partita = { turno:0, punteggio:0, storico:[], cartaCorrente:null, timer:null, secondi:20, started:true };
+  document.getElementById("score").textContent = "0";
+  document.getElementById("card-num").textContent = "0 / 10";
+  document.getElementById("timer").textContent = "20";
+  document.getElementById("timer").className = "score-val";
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("risultato-area").style.display = "none";
+  document.getElementById("storico-area").style.display = "none";
+  document.getElementById("storico-list").innerHTML = "";
+  document.getElementById("game-area").style.display = "";
+  document.getElementById("answer-area").style.display = "none";
+  document.getElementById("controls").innerHTML = "";
+  renderBack();
+}
+
+function renderBack(){
+  document.getElementById("card-wrap").innerHTML = `
+    <div class="carta-back" onclick="estraiCarta()">
+      <div class="carta-back-icon">🎴</div>
+      <div class="carta-back-text">Clicca per estrarre la carta</div>
+    </div>`;
+}
+
+function estraiCarta(){
+  if(partita.turno >= 10) return;
+  if(partita.timer) clearInterval(partita.timer);
+  const cat = getRand(CATEGORIE);
+  const lettereValide = LETTERE.filter(l => cat.esempi[l]);
+  const lettera = getRand(lettereValide);
+  partita.cartaCorrente = { cat, lettera };
+  partita.turno++;
+  partita.secondi = 20;
+  document.getElementById("card-num").textContent = partita.turno + " / 10";
+  document.getElementById("card-wrap").innerHTML = `
+    <div class="carta-front ${cat.cc}">
+      <div class="carta-icon">${cat.icon}</div>
+      <div class="carta-letter">${lettera}</div>
+      <div class="carta-cat">${cat.nome}</div>
+    </div>`;
+  const ans = document.getElementById("answer-area");
+  ans.style.display = "flex";
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  const inp = document.getElementById("risposta");
+  inp.value = "";
+  setTimeout(() => inp.focus(), 80);
+  startTimer();
+}
+
+function startTimer(){
+  const el = document.getElementById("timer");
+  el.textContent = partita.secondi;
+  el.className = "score-val";
+  partita.timer = setInterval(() => {
+    partita.secondi--;
+    el.textContent = partita.secondi;
+    if(partita.secondi <= 5) el.className = "score-val danger";
+    else if(partita.secondi <= 10) el.className = "score-val warning";
+    if(partita.secondi <= 0){ clearInterval(partita.timer); timeOut(); }
+  }, 1000);
+}
+
+function timeOut(){
+  const {cat, lettera} = partita.cartaCorrente;
+  setFeedback("no", "⏰ Tempo scaduto! Esempio: " + cat.esempi[lettera]);
+  registra(null, cat.esempi[lettera]);
+  setTimeout(prossimoOFine, 1900);
+}
+
+function conferma(){
+  if(!partita.cartaCorrente) return;
+  clearInterval(partita.timer);
+  const val = document.getElementById("risposta").value.trim();
+  if(!val){ document.getElementById("risposta").focus(); return; }
+  const {cat, lettera} = partita.cartaCorrente;
+  if(val[0].toUpperCase() === lettera){
+    const pt = Math.max(1, partita.secondi);
+    partita.punteggio += pt;
+    document.getElementById("score").textContent = partita.punteggio;
+    setFeedback("ok", "✓ Corretto! +" + pt + " punti");
+    registra(val, cat.esempi[lettera]);
+  } else {
+    setFeedback("no", "✗ La risposta deve iniziare con " + lettera + ". Esempio: " + cat.esempi[lettera]);
+    registra(null, cat.esempi[lettera]);
+  }
+  setTimeout(prossimoOFine, 1900);
+}
+
+function salta(){
+  if(!partita.cartaCorrente) return;
+  clearInterval(partita.timer);
+  const {cat, lettera} = partita.cartaCorrente;
+  setFeedback("", "→ Saltato. Esempio: " + cat.esempi[lettera]);
+  registra("skip", cat.esempi[lettera]);
+  setTimeout(prossimoOFine, 1600);
+}
+
+function setFeedback(cls, testo){
+  const el = document.getElementById("feedback");
+  el.className = "feedback" + (cls ? " " + cls : "");
+  el.textContent = testo;
+}
+
+function registra(risposta, esempio){
+  const {cat, lettera} = partita.cartaCorrente;
+  const tipo = risposta === null ? "no" : risposta === "skip" ? "skip" : "ok";
+  partita.storico.push({ cat:cat.nome, icon:cat.icon, lettera, risposta, esempio, tipo });
+}
+
+function prossimoOFine(){
+  document.getElementById("answer-area").style.display = "none";
+  if(partita.turno >= 10){ finePartita(); return; }
+  renderBack();
+}
+
+function finePartita(){
+  clearInterval(partita.timer);
+  const pt = partita.punteggio;
+  let voto, msg, emoji;
+  if(pt>=150){ voto="10"; msg="Sei un vero maestro della musica!"; emoji="🏆"; }
+  else if(pt>=110){ voto="9"; msg="Ottimo! Conosci la musica molto bene."; emoji="🌟"; }
+  else if(pt>=80){ voto="8"; msg="Bravo! Qualche incertezza, ma vai benissimo."; emoji="🎯"; }
+  else if(pt>=50){ voto="7"; msg="Discreto! Puoi migliorare ancora."; emoji="👍"; }
+  else if(pt>=30){ voto="6"; msg="Sufficiente. Studia un po' di più!"; emoji="📚"; }
+  else { voto="5"; msg="Dai, la musica vale la pena scoprirla!"; emoji="🎵"; }
+
+  document.getElementById("game-area").style.display = "none";
+  const ra = document.getElementById("risultato-area");
+  ra.style.display = "";
+  ra.innerHTML = `<div class="risultato">
+    <div class="risultato-label">Partita conclusa</div>
+    <h2>${emoji} Ottimo lavoro!</h2>
+    <div class="voto">${voto}</div>
+    <div class="voto-su-10">su 10</div>
+    <div class="punti-finali">${pt} punti totali</div>
+    <p class="risultato-msg">${msg}</p>
+    <button class="btn primary large" onclick="nuovaPartita()">Gioca ancora</button>
+  </div>`;
+
+  mostraStorico();
+}
+
+function mostraStorico(){
+  const lista = document.getElementById("storico-list");
+  lista.innerHTML = "";
+  partita.storico.forEach(s => {
+    const li = document.createElement("li");
+    li.className = "storico-item";
+    const badge = s.tipo==="ok"
+      ? `<span class="badge badge-ok">Corretto</span>`
+      : s.tipo==="skip"
+      ? `<span class="badge badge-skip">Saltato</span>`
+      : `<span class="badge badge-no">Errato</span>`;
+    li.innerHTML = `<span class="storico-icon">${s.icon}</span>
+      <div class="storico-main"><strong>${s.lettera}</strong> <span>— ${s.cat}</span></div>
+      ${badge}
+      <div class="storico-es" title="${s.esempio}">${s.esempio}</div>`;
+    lista.appendChild(li);
+  });
+  document.getElementById("storico-area").style.display = "";
+}
+
+document.getElementById("risposta").addEventListener("keydown", e => {
+  if(e.key === "Enter") conferma();
+});
+</script>
+</body>
+</html>

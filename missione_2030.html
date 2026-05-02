@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Missione 2030 — Gioco Agenda 2030</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #1a1a1a;
+    }
+    .game-wrap { width: 100%; max-width: 660px; }
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header h1 { font-size: 24px; font-weight: 600; color: #1a1a1a; }
+    .header p { font-size: 14px; color: #666; margin-top: 4px; }
+    .score-bar { display: flex; gap: 12px; margin-bottom: 1.5rem; }
+    .metric { flex: 1; background: #fff; border: 0.5px solid #ddd; border-radius: 8px; padding: 12px; text-align: center; }
+    .metric-label { font-size: 12px; color: #888; }
+    .metric-value { font-size: 20px; font-weight: 600; margin-top: 2px; color: #1a1a1a; }
+    .progress-wrap { margin-bottom: 1rem; }
+    .progress-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+    .progress-track { height: 6px; background: #e8e8e8; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; background: #1D9E75; transition: width 0.4s; }
+    .card { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .sdg-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 8px; margin-bottom: 10px; }
+    .scenario-title { font-size: 17px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
+    .scenario-desc { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 1rem; }
+    .choice-btn {
+      display: block; width: 100%; text-align: left;
+      background: #f5f5f0; border: 0.5px solid #ccc; border-radius: 8px;
+      padding: 12px 14px; margin-bottom: 8px; cursor: pointer;
+      font-size: 14px; color: #1a1a1a; transition: background 0.15s;
+      font-family: inherit;
+    }
+    .choice-btn:hover { background: #ebebeb; }
+    .choice-icon { margin-right: 8px; }
+    .result-card { border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; border: 0.5px solid transparent; }
+    .result-good { background: #EAF3DE; border-color: #C0DD97; }
+    .result-bad { background: #FCEBEB; border-color: #F7C1C1; }
+    .result-mid { background: #FAEEDA; border-color: #FAC775; }
+    .result-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .result-good .result-title { color: #27500A; }
+    .result-bad .result-title { color: #791F1F; }
+    .result-mid .result-title { color: #633806; }
+    .result-desc { font-size: 13px; line-height: 1.6; }
+    .result-good .result-desc { color: #3B6D11; }
+    .result-bad .result-desc { color: #A32D2D; }
+    .result-mid .result-desc { color: #854F0B; }
+    .delta { font-size: 12px; margin-top: 8px; font-weight: 600; }
+    .result-good .delta { color: #1D9E75; }
+    .result-bad .delta { color: #E24B4A; }
+    .result-mid .delta { color: #BA7517; }
+    .next-btn {
+      display: block; width: 100%; padding: 12px;
+      border-radius: 8px; border: 0.5px solid #ccc;
+      background: #fff; font-size: 14px; font-weight: 600;
+      color: #1a1a1a; cursor: pointer; text-align: center;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .next-btn:hover { background: #f5f5f0; }
+    .final-card { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 2rem; text-align: center; }
+    .final-planet { font-size: 64px; margin-bottom: 1rem; }
+    .final-title { font-size: 22px; font-weight: 600; margin-bottom: 8px; color: #1a1a1a; }
+    .final-sub { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 1.5rem; }
+    .final-score { font-size: 32px; font-weight: 700; margin-bottom: 0.5rem; }
+    .final-meta { font-size: 13px; color: #888; margin-top: 4px; }
+    .restart-btn {
+      padding: 12px 28px; border-radius: 8px; border: 0.5px solid #ccc;
+      background: #f5f5f0; font-size: 14px; font-weight: 600;
+      color: #1a1a1a; cursor: pointer; margin-top: 1.5rem;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .restart-btn:hover { background: #ebebeb; }
+    @media (max-width: 480px) {
+      .score-bar { gap: 8px; }
+      .metric { padding: 8px; }
+      .metric-value { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="game-wrap">
+  <div class="header">
+    <h1>🌍 Missione 2030</h1>
+    <p>Fai le scelte giuste per salvare il pianeta!</p>
+  </div>
+  <div class="score-bar">
+    <div class="metric"><div class="metric-label">Punteggio</div><div class="metric-value" id="score">0</div></div>
+    <div class="metric"><div class="metric-label">Pianeta</div><div class="metric-value" id="planet-emoji">🌍</div></div>
+    <div class="metric"><div class="metric-label">Domanda</div><div class="metric-value" id="q-counter">1 / 7</div></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-label">Avanzamento</div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div id="game-area"></div>
+</div>
+
+<script>
+const scenarios = [
+  {
+    sdg: "SDG 13 — Lotta al cambiamento climatico",
+    sdgColor: { bg: "#E1F5EE", color: "#0F6E56" },
+    title: "Caldo record in estate",
+    desc: "La tua città ha registrato temperature altissime. Il Comune deve decidere come raffreddare le strade. Tu sei nella commissione giovani. Cosa proponi?",
+    choices: [
+      { icon: "🌳", text: "Piantare alberi e creare parchi urbani per fare ombra naturale" },
+      { icon: "❄️", text: "Installare grandi condizionatori pubblici in ogni strada" },
+      { icon: "🏗️", text: "Non fare nulla, tanto l'estate finisce" }
+    ],
+    results: [
+      { type: "good", title: "Ottima scelta!", desc: "Gli alberi assorbono CO₂, riducono le temperature di 3-5°C e migliorano la qualità dell'aria. Le città con più verde sono più resilienti ai cambiamenti climatici.", delta: "+20 punti", dp: 20 },
+      { type: "mid", title: "Soluzione parziale", desc: "I condizionatori raffreddano gli spazi chiusi, ma aumentano il consumo elettrico e rilasciano calore all'esterno, peggiorando l'isola di calore urbana.", delta: "+5 punti", dp: 5 },
+      { type: "bad", title: "Scelta sbagliata!", desc: "Ignorare il problema non lo risolve. Le temperature estreme causano malattie e morti, specialmente tra anziani e bambini. Serve agire subito!", delta: "+0 punti", dp: 0 }
+    ]
+  },
+  {
+    sdg: "SDG 2 — Fame zero",
+    sdgColor: { bg: "#FAEEDA", color: "#633806" },
+    title: "Cibo sprecato alla mensa scolastica",
+    desc: "Ogni giorno la mensa della tua scuola butta via 30 kg di cibo avanzato. Tu e i tuoi compagni potete proporre una soluzione al preside. Cosa fate?",
+    choices: [
+      { icon: "📦", text: "Raccogliere il cibo in eccesso e donarlo a una mensa sociale" },
+      { icon: "🗑️", text: "Non cambiare nulla, è compito degli adulti" },
+      { icon: "📊", text: "Creare un sistema per ordinare solo il necessario e ridurre gli avanzi" }
+    ],
+    results: [
+      { type: "good", title: "Gesto di solidarietà!", desc: "Donare il cibo avanzato aiuta le persone in difficoltà e riduce i rifiuti organici. Nel mondo 828 milioni di persone soffrono la fame: ogni kg conta!", delta: "+18 punti", dp: 18 },
+      { type: "bad", title: "Opportunità persa!", desc: "I giovani possono fare la differenza! Lo spreco alimentare produce il 8-10% delle emissioni globali di gas serra. Agire è necessario.", delta: "+0 punti", dp: 0 },
+      { type: "good", title: "Soluzione sistemica!", desc: "Ridurre alla fonte è ancora meglio che riciclare! Un sistema intelligente di prenotazione pasti riduce sprechi e costi per la scuola.", delta: "+20 punti", dp: 20 }
+    ]
+  },
+  {
+    sdg: "SDG 6 — Acqua pulita",
+    sdgColor: { bg: "#E6F1FB", color: "#0C447C" },
+    title: "Siccità nel tuo paese",
+    desc: "L'estate è stata secca e le riserve d'acqua sono basse. Il sindaco chiede ai cittadini di risparmiare. Come si comporta la tua famiglia?",
+    choices: [
+      { icon: "🚿", text: "Fare docce brevi, chiudere il rubinetto mentre ci si lava i denti, raccogliere l'acqua piovana" },
+      { icon: "🛁", text: "Continuare come sempre: l'acqua dal rubinetto c'è sempre" },
+      { icon: "💧", text: "Comprare solo acqua in bottiglia di plastica" }
+    ],
+    results: [
+      { type: "good", title: "Campione del risparmio!", desc: "Ridurre i consumi domestici è essenziale. Una doccia di 5 min usa 50 litri; un bagno ne usa 150. Raccogliere l'acqua piovana può coprire il 30% dell'irrigazione.", delta: "+20 punti", dp: 20 },
+      { type: "bad", title: "Attenzione!", desc: "L'acqua potabile è una risorsa limitata. 2 miliardi di persone nel mondo non hanno accesso ad acqua sicura. Sprecarla è una scelta che ha conseguenze globali.", delta: "+0 punti", dp: 0 },
+      { type: "mid", title: "Soluzione problematica", desc: "Le bottiglie di plastica creano rifiuti enormi e costano 300 volte più dell'acqua del rubinetto. Meglio usare borracce riutilizzabili e risparmiare l'acqua alla fonte.", delta: "+5 punti", dp: 5 }
+    ]
+  },
+  {
+    sdg: "SDG 7 — Energia pulita",
+    sdgColor: { bg: "#FAEEDA", color: "#854F0B" },
+    title: "La scuola deve rinnovare l'impianto",
+    desc: "La vostra scuola deve sostituire il vecchio sistema di riscaldamento. Il consiglio d'istituto chiede opinioni agli studenti. Tu cosa voti?",
+    choices: [
+      { icon: "☀️", text: "Pannelli solari + pompa di calore: più costosi ora, ma gratis per sempre" },
+      { icon: "🔥", text: "Caldaia a gas nuova: più economica subito" },
+      { icon: "🏚️", text: "Tenere il vecchio impianto per non spendere nulla" }
+    ],
+    results: [
+      { type: "good", title: "Scelta lungimirante!", desc: "L'energia solare è gratuita e pulita. I pannelli si ripagano in 7-10 anni e durano 25+ anni. La scuola risparmia e diventa un esempio per la comunità.", delta: "+20 punti", dp: 20 },
+      { type: "mid", title: "Scelta di compromesso", desc: "Una caldaia nuova è più efficiente della vecchia, ma il gas è una fonte fossile che contribuisce al riscaldamento globale. Non è la soluzione del futuro.", delta: "+8 punti", dp: 8 },
+      { type: "bad", title: "Risparmio falso!", desc: "Un impianto vecchio consuma il 40% di energia in più e inquina di più. Il 'risparmio' di oggi diventa uno spreco enorme nel tempo.", delta: "+0 punti", dp: 0 }
+    ]
+  },
+  {
+    sdg: "SDG 11 — Città sostenibili",
+    sdgColor: { bg: "#EEEDFE", color: "#3C3489" },
+    title: "Come vai a scuola ogni mattina?",
+    desc: "I tuoi genitori ti offrono diverse opzioni per il tragitto di 2 km fino a scuola. Tu cosa scegli ogni giorno?",
+    choices: [
+      { icon: "🚲", text: "Bici o monopattino: faccio movimento e non inquino" },
+      { icon: "🚗", text: "Mi faccio accompagnare in auto: è comodo e veloce" },
+      { icon: "🚌", text: "Autobus o carpooling con altri compagni di scuola" }
+    ],
+    results: [
+      { type: "good", title: "Perfetto!", desc: "In bici 2 km si percorrono in 8 minuti, si fanno 15 minuti di attività fisica e si emette 0 grammi di CO₂. Le città con più ciclisti hanno meno traffico e meno smog.", delta: "+20 punti", dp: 20 },
+      { type: "bad", title: "Il costo nascosto", desc: "Un'auto da sola emette ~130g di CO₂ per km. Se ogni studente facesse così, si aggiungerebbero tonnellate di CO₂ al giorno solo per andare a scuola!", delta: "+0 punti", dp: 0 },
+      { type: "mid", title: "Buona scelta collettiva!", desc: "Condividere il mezzo riduce le emissioni pro-capite. Un autobus pieno sostituisce 50 auto! Anche il carpooling è molto meglio che andare da soli in auto.", delta: "+15 punti", dp: 15 }
+    ]
+  },
+  {
+    sdg: "SDG 14 — Vita sott'acqua",
+    sdgColor: { bg: "#E6F1FB", color: "#185FA5" },
+    title: "Una gita al mare",
+    desc: "Sei al mare con gli amici. Trovate una spiaggia piena di plastica e spazzatura. Cosa fate?",
+    choices: [
+      { icon: "🧹", text: "Organizzate una piccola raccolta e portate i rifiuti nel cestino" },
+      { icon: "📸", text: "Fate foto per i social ma non raccogliete nulla" },
+      { icon: "😔", text: "Siete delusi ma non fate niente: non è colpa vostra" }
+    ],
+    results: [
+      { type: "good", title: "Eroi del mare!", desc: "Ogni anno 8 milioni di tonnellate di plastica finiscono negli oceani. Piccole azioni collettive fanno la differenza. La plastica si può segnalare ai Comuni per la pulizia sistematica.", delta: "+20 punti", dp: 20 },
+      { type: "mid", title: "A metà strada", desc: "Sensibilizzare è importante! Ma le foto senza azione lasciano i rifiuti dov'erano. Meglio fare entrambe le cose: documentare E raccogliere.", delta: "+8 punti", dp: 8 },
+      { type: "bad", title: "Il problema peggiora", desc: "La plastica in mare uccide oltre 1 milione di uccelli marini e 100.000 mammiferi ogni anno. Ogni azione conta: anche raccogliere pochi rifiuti salva vite.", delta: "+0 punti", dp: 0 }
+    ]
+  },
+  {
+    sdg: "SDG 4 — Istruzione di qualità",
+    sdgColor: { bg: "#EAF3DE", color: "#27500A" },
+    title: "Una compagna in difficoltà",
+    desc: "La tua nuova compagna di classe viene da un paese straniero e non capisce bene l'italiano. Fa fatica a seguire le lezioni. Tu cosa fai?",
+    choices: [
+      { icon: "🤝", text: "Le siedi vicino, la aiuti con i compiti e la includi nel gruppo" },
+      { icon: "😶", text: "Non è un tuo problema, hai già le tue difficoltà" },
+      { icon: "📢", text: "Proponi alla prof di attivare tutoraggio tra pari per aiutarla" }
+    ],
+    results: [
+      { type: "good", title: "Gesto di umanità!", desc: "L'inclusione è un diritto fondamentale. Aiutare un compagno non solo gli dà opportunità, ma arricchisce anche te: impari l'empatia e la cooperazione.", delta: "+18 punti", dp: 18 },
+      { type: "bad", title: "Occasione persa", desc: "Nel mondo 244 milioni di bambini non vanno a scuola. Chi ci va ha la responsabilità di rendere l'istruzione accessibile a tutti, anche dentro la propria classe.", delta: "+0 punti", dp: 0 },
+      { type: "good", title: "Soluzione sistemica!", desc: "Il tutoraggio tra pari funziona: aiuta chi è in difficoltà, rafforza chi fa da tutor e crea una classe più coesa. L'istruzione di qualità è un impegno collettivo.", delta: "+20 punti", dp: 20 }
+    ]
+  }
+];
+
+let current = 0, score = 0;
+
+function getPlanet(s) {
+  if (s >= 110) return "🌟";
+  if (s >= 80) return "🌍";
+  if (s >= 50) return "🌿";
+  if (s >= 20) return "⚠️";
+  return "😟";
+}
+
+function render() {
+  const area = document.getElementById("game-area");
+  if (current >= scenarios.length) { renderFinal(area); return; }
+  document.getElementById("q-counter").textContent = (current + 1) + " / " + scenarios.length;
+  document.getElementById("progress-fill").style.width = (current / scenarios.length * 100) + "%";
+  const s = scenarios[current];
+  area.innerHTML = `
+    <div class="card">
+      <div class="sdg-badge" style="background:${s.sdgColor.bg};color:${s.sdgColor.color}">${s.sdg}</div>
+      <div class="scenario-title">${s.title}</div>
+      <div class="scenario-desc">${s.desc}</div>
+      ${s.choices.map((c, i) => `<button class="choice-btn" onclick="choose(${i})"><span class="choice-icon">${c.icon}</span>${c.text}</button>`).join("")}
+    </div>`;
+}
+
+function choose(idx) {
+  const s = scenarios[current];
+  const r = s.results[idx];
+  score += r.dp;
+  document.getElementById("score").textContent = score;
+  document.getElementById("planet-emoji").textContent = getPlanet(score);
+  const area = document.getElementById("game-area");
+  area.innerHTML = `
+    <div class="card">
+      <div class="sdg-badge" style="background:${s.sdgColor.bg};color:${s.sdgColor.color}">${s.sdg}</div>
+      <div class="scenario-title">${s.title}</div>
+      <div class="scenario-desc">Hai scelto: <strong>${s.choices[idx].icon} ${s.choices[idx].text}</strong></div>
+    </div>
+    <div class="result-card result-${r.type}">
+      <div class="result-title">${r.title}</div>
+      <div class="result-desc">${r.desc}</div>
+      <div class="delta">${r.delta}</div>
+    </div>
+    <button class="next-btn" onclick="nextQ()">${current + 1 < scenarios.length ? "Prossima sfida →" : "Vedi il risultato finale →"}</button>`;
+}
+
+function nextQ() { current++; render(); }
+
+function renderFinal(area) {
+  document.getElementById("progress-fill").style.width = "100%";
+  let title, sub, color;
+  if (score >= 110) {
+    title = "Campione della sostenibilità!";
+    sub = "Hai fatto scelte eccellenti in tutte le sfide. Il pianeta ha bisogno di persone come te. Continua a informarti e a ispirare gli altri!";
+    color = "#1D9E75";
+  } else if (score >= 80) {
+    title = "Buon cittadino globale!";
+    sub = "Ottimo lavoro! Hai dimostrato consapevolezza su molti temi. Con un po' più di impegno puoi diventare un vero campione del futuro sostenibile.";
+    color = "#378ADD";
+  } else if (score >= 50) {
+    title = "Sulla strada giusta...";
+    sub = "Hai fatto alcune buone scelte, ma c'è margine di miglioramento. Rileggi i messaggi degli scenari: ogni piccola azione conta!";
+    color = "#BA7517";
+  } else {
+    title = "Il pianeta ha bisogno di te!";
+    sub = "Non mollare! L'Agenda 2030 ci chiede a tutti di fare la nostra parte. Riprova il gioco e scopri le scelte che fanno la differenza.";
+    color = "#E24B4A";
+  }
+  area.innerHTML = `
+    <div class="final-card">
+      <div class="final-planet">${getPlanet(score)}</div>
+      <div class="final-title">${title}</div>
+      <div class="final-sub">${sub}</div>
+      <div class="final-score" style="color:${color}">${score} / 140 punti</div>
+      <div class="final-meta">Rigioca per migliorare il tuo punteggio</div>
+      <button class="restart-btn" onclick="restart()">Ricomincia</button>
+    </div>`;
+}
+
+function restart() {
+  current = 0; score = 0;
+  document.getElementById("score").textContent = 0;
+  document.getElementById("planet-emoji").textContent = "🌍";
+  document.getElementById("q-counter").textContent = "1 / 7";
+  document.getElementById("progress-fill").style.width = "0%";
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
